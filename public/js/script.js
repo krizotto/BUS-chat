@@ -2,7 +2,7 @@
 let this_usr;
 let socket = io.connect('http://' + document.domain + ':' + location.port);
 let key = CryptoJS.enc.Utf8.parse('1234567890123456');
-console.log('ssij paue')
+
 function encrypt(msgString, key) {
     // msgString is expected to be Utf8 encoded
     let iv = CryptoJS.lib.WordArray.random(16);
@@ -48,7 +48,7 @@ socket.on('connect', function () {
         if (user_name !== '' && user_input != '') {
             this_usr = user_name
 
-            let my_input = encrypt(user_input,key);
+            let my_input = encrypt(user_input,key).toString();
 
             console.log("message after decryption: " + user_input);
 
