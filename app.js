@@ -1,9 +1,11 @@
 let express = require('express'),
   app = express(),
   server = require('http').createServer(app),
-  io = require('socket.io').listen(server);
+  io = require('socket.io').listen(server),
+  session = require('express-session'),
+  CryptoJS = require('crypto-js');
 
-let CryptoJS = require('crypto-js');
+
 let key = CryptoJS.enc.Utf8.parse('1234567890123456');
 
 function encrypt(msgString, key) {
@@ -36,6 +38,10 @@ server.listen(process.env.PORT || 5000); //choose port
 
 app.use(express.static(__dirname + '/public')); //directory to static files (*.css, *.js)
 app.get('/',function(req,res){
+  let sess = req.session;
+  sess.username;
+  sess.publickey;
+  
   res.sendFile(__dirname+'/index.html');
 }); //redirect to index.html on main page
 
