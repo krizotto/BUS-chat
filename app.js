@@ -38,9 +38,9 @@ server.listen(process.env.PORT || 5000); //choose port
 
 app.use(express.static(__dirname + '/public')); //directory to static files (*.css, *.js)
 app.get('/',function(req,res){
-  let sess = req.session;
+  /*let sess = req.session;
   sess.username;
-  sess.publickey;
+  sess.publickey;*/
   
   res.sendFile(__dirname+'/index.html');
 }); //redirect to index.html on main page
