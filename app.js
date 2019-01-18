@@ -1,12 +1,31 @@
 let express = require('express'),
-  app = express(),
-  server = require('http').createServer(app),
-  io = require('socket.io').listen(server),
-  session = require('express-session'),
-  CryptoJS = require('crypto-js');
+    app = express(),
+    server = require('http').createServer(app),
+    io = require('socket.io').listen(server),
+    session = require('express-session'),
+    CryptoJS = require('crypto-js');
 
 
 let key = CryptoJS.enc.Utf8.parse('1234567890123456');
+
+
+let fs = require("fs");
+//
+// let privateKey;
+// let publicKey = "abc";
+
+let privateKey = fs.readFileSync("./keys/private-key.pem", function (err, data) {
+    if (err) throw err;
+}).toString();
+
+let publicKey = fs.readFileSync("./keys/public-key.pem", function (err, data) {
+    if (err) throw err;
+}).toString();
+
+
+const JSEncrypt = require('node-jsencrypt');
+
+const jsEncrypt = new JSEncrypt();
 
 function encrypt(msgString, key) {
     // msgString is expected to be Utf8 encoded
@@ -33,36 +52,49 @@ function decrypt(ciphertextStr, key) {
     });
     return decrypted.toString(CryptoJS.enc.Utf8);
 }
+
 //events
 server.listen(process.env.PORT || 5000); //choose port
 
 app.use(express.static(__dirname + '/public')); //directory to static files (*.css, *.js)
-app.get('/',function(req,res){
-  /*let sess = req.session;
-  sess.username;
-  sess.publickey;*/
-  
-  res.sendFile(__dirname+'/index.html');
+app.get('/', function (req, res) {
+    /*let sess = req.session;
+    sess.username;
+    sess.publickey;*/
+
+    res.sendFile(__dirname + '/index.html');
 }); //redirect to index.html on main page
 
 
 io.sockets.on('connection', function (socket) {
 
-  console.log("Socket connected.");
 
-  socket.on('connection-request', function(json){
-    console.log(json)
-    io.emit('connection-response', json)
-  })
+    socket.on('connection-request', function (json) {
 
-  socket.on('message-request', function(json){
-    let mystring = json['message']
-    //server-side decryption
-    console.log('Encrypted message: '+ mystring)
-    console.log('Decrypted message: '+ decrypt(mystring,key))
-    
-    io.emit('message-response', json)
-  })
-  
+        console.log("Socket connected.");
+        let encryptedSymmetricKey = json['encryptedSymmetricKey'];
+        console.log("Encrypted symmetric key: " + encryptedSymmetricKey);
+        let decryptor = new JSEncrypt();
+        decryptor.setPrivateKey(privateKey);
+        let decryptedSymmetricKey = decryptor.decrypt(encryptedSymmetricKey);
+
+        console.log('Decrypted symmetric key: ' + decryptedSymmetricKey);
+
+        //teraz trzebaby go przekazac do sesji i uzywac przy messagach
+
+        io.emit('connection-response', json)
+    })
+
+    socket.on('message-request', function (json) {
+        let mystring = json['message']
+        //server-side decryption
+        console.log('Encrypted message: ' + mystring)
+        console.log('Decrypted message: ' + decrypt(mystring, key))
+
+        io.emit('message-response', json)
+    })
+
 });
+
+
 

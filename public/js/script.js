@@ -2,6 +2,7 @@
 let this_usr;
 let socket = io.connect('http://' + document.domain + ':' + location.port);
 let key = CryptoJS.enc.Utf8.parse('1234567890123456');
+console.log("Generated symmetric key:" + key.toString());
 
 function encrypt(msgString, key) {
     // msgString is expected to be Utf8 encoded
@@ -30,8 +31,18 @@ function decrypt(ciphertextStr, key) {
 }
 
 socket.on('connect', function () {
+    let generated_key = key.toString();
+    var encryptor = new JSEncrypt(); // https://github.com/travist/jsencrypt
+    // tu taki hardkod troche brzydki, ale na razie nie mam pomyslu jak ladniej to przekazac zeby bylo w miare latwo. wydaje mi sie ze na projekt jest ok
+    let server_publickey = "-----BEGIN PUBLIC KEY-----MIGfMA0GCSqGSIb3DQEBAQUAA4GNADCBiQKBgQDlOJu6TyygqxfWT7eLtGDwajtNFOb9I5XRb6khyfD1Yt3YiCgQWMNW649887VGJiGr/L5i2osbl8C9+WJTeucF+S76xFxdU6jE0NQ+Z+zEdhUTooNRaY5nZiu5PgDB0ED/ZKBUSLKL7eibMxZtMlUDHjm4gwQco1KRMDSmXSMkDwIDAQAB-----END PUBLIC KEY-----";
+    encryptor.setPublicKey(server_publickey);
+
+    let encryptedSymmetricKey = encryptor.encrypt(generated_key);
+
     socket.emit('connection-request', {
-        data: 'User Connected'
+        data: 'User Connected',
+        encryptedSymmetricKey: encryptedSymmetricKey
+
     })
 
     let form = $('form').on('submit', function (e) {
@@ -78,7 +89,7 @@ socket.on('message-response', function (msg) {
     let message = decodeURIComponent(escape(msg.message));
 
     console.log("message before decryption: " + message);
-   
+
     let mymessage = decrypt(message,key);
 
     //Adding message bubbles
