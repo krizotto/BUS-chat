@@ -1,0 +1,9 @@
+{
+    "name": "bus-chat",
+    "version": "0.1.0",
+    "description": "BUS chat",
+    "dependencies": {
+        "express": "^4.16.4",
+        "socket.io": "^2.2.0"
+    }
+}

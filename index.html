@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css">
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/3.1.2/rollups/aes.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/1.7.3/socket.io.min.js"></script>
+
+    <script src="https://cdn.jsdelivr.net/npm/node-forge@0.7.0/dist/forge.min.js"></script>
+    <script src="js/script.js"></script>
+
+    <link rel="stylesheet" href="css/style.css" type="text/css">
+    <title>BUS Chat</title>
+
+</head>
+
+<body>
+<nav class="navbar navbar-inverse navbar-fixed-bottom" style="height: 10%;">
+    <div class="container">
+        <form action="" method="POST">
+            <div class="row" style="margin-top: 1%;">
+                <div class="col-md-2">
+                    <div class="form-group ">
+                        <input type="text" class="form-control username" id="username" placeholder="Enter username">
+                    </div>
+                </div>
+                <div class="col-md-8">
+                    <div class="form-group">
+                        <input type="text" class="form-control message" id="message" placeholder="Your message">
+                    </div>
+                </div>
+                <div class="col-md-2">
+                    <div class="form-group">
+                        <button type="submit" class="btn btn-primary">Send <span
+                                class="glyphicon glyphicon-send"></span></button>
+                    </div>
+                </div>
+            </div>
+
+
+        </form>
+    </div>
+</nav>
+
+<div class="container main">
+    <br><br>
+    <div class="center"><h1>Welcome to BUS-chat</h1></div>
+    <hr>
+    <div class="row">
+        <div class="col-md-1"></div>
+        <div class="col-md-10">
+            <ul class="mess">
+                <h3>No message yet..</h3>
+            </ul>
+        </div>
+        <div class="col-md-1"></div>
+    </div>
+</div>
+
+
+<!-- jQuery (necessary for Bootstrap's JavaScript plugins) -->
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/1.12.4/jquery.min.js"></script>
+
+
+
+</body>
+</html>
+
