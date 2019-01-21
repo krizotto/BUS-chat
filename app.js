@@ -3,11 +3,16 @@ let express = require('express'),
     server = require('http').createServer(app),
     io = require('socket.io').listen(server),
     session = require('express-session'),
-    CryptoJS = require('crypto-js');
+    CryptoJS = require('crypto-js'),
+    uuid = require('uuid/v4');
+    //RedisStore = require('connect-redis')(session);
+
+
+
 
 
 let key = CryptoJS.enc.Utf8.parse('1234567890123456');
-
+console.log('Server listening on port 5000...')
 
 let fs = require("fs");
 //
@@ -53,17 +58,40 @@ function decrypt(ciphertextStr, key) {
     return decrypted.toString(CryptoJS.enc.Utf8);
 }
 
+
+let sessionMiddleware = session({
+    genid: (req) => {
+      return uuid() // use UUIDs for session IDs
+    },
+    username: 'defaultuser',
+    symmetricKey: 'random',
+    secret: 'keyboard cat',
+    resave: false,
+    saveUninitialized: true
+  })
+app.use(sessionMiddleware)
+
+// io.use(function(socket, next) {
+//     sessionMiddleware(socket.request, socket.request.res, next);
+// });
+  
+
+
+
 //events
 server.listen(process.env.PORT || 5000); //choose port
 
 app.use(express.static(__dirname + '/public')); //directory to static files (*.css, *.js)
 app.get('/', function (req, res) {
-    /*let sess = req.session;
-    sess.username;
-    sess.publickey;*/
+    
+    console.log('Session unique ID: '+req.sessionID)
 
     res.sendFile(__dirname + '/index.html');
 }); //redirect to index.html on main page
+
+
+
+
 
 
 io.sockets.on('connection', function (socket) {
@@ -79,9 +107,10 @@ io.sockets.on('connection', function (socket) {
         let decryptedSymmetricKey = decryptor.decrypt(encryptedSymmetricKey);
 
         console.log('Decrypted symmetric key: ' + decryptedSymmetricKey);
-
+        // socket.request.session.symmetricKey = decryptedSymmetricKey;
+        // console.log('Moj symetryczny klucz: '+socket.request.session.symmetricKey)
         //teraz trzebaby go przekazac do sesji i uzywac przy messagach
-
+        // socket.request.session.symmetricKey = 2
         io.emit('connection-response', json)
     })
 

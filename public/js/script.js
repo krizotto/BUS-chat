@@ -42,7 +42,6 @@ socket.on('connect', function () {
     socket.emit('connection-request', {
         data: 'User Connected',
         encryptedSymmetricKey: encryptedSymmetricKey
-
     })
 
     let form = $('form').on('submit', function (e) {
