@@ -4,7 +4,8 @@ let express = require('express'),
     io = require('socket.io').listen(server),
     CryptoJS = require('crypto-js');
 
-//RedisStore = require('connect-redis')(session);
+const JSEncrypt = require('node-jsencrypt');
+
 let Dictionary = function () {
     this.data = {};
     this.add = function (key, value) {
@@ -28,8 +29,8 @@ let Dictionary = function () {
         console.log('\n-------------------')
     };
     this.myemit = function (json) {
+        let myMessage = json['message']
         for (let key in this.data) {
-            let myMessage = 'hello'
             console.log('My message: ' + myMessage)
             let encMess = encrypt(myMessage, this.get(key))
             console.log('EncMes: ' + encMess)
@@ -42,11 +43,11 @@ let Dictionary = function () {
 let dict = new Dictionary();
 
 
-let key = CryptoJS.enc.Utf8.parse('1234567890123456');
-console.log('Server listening on port 5000...')
 
+
+
+// -------------------- CHOOSING PRIVATE & PUBLIC KEY -------------------------
 let fs = require("fs");
-
 let privateKey = fs.readFileSync("./keys/private-key.pem", function (err, data) {
     if (err) throw err;
 }).toString();
@@ -56,40 +57,30 @@ let publicKey = fs.readFileSync("./keys/public-key.pem", function (err, data) {
 }).toString();
 
 
-const JSEncrypt = require('node-jsencrypt');
-
-const jsEncrypt = new JSEncrypt();
-
 function encrypt(msgString, key) {
     return CryptoJS.AES.encrypt(msgString, key).toString();
 }
-
 function decrypt(ciphertextStr, key) {
     return CryptoJS.AES.decrypt(ciphertextStr, key).toString(CryptoJS.enc.Utf8);
 }
 
 
 
-//events
-server.listen(process.env.PORT || 5000); //choose port
 
+server.listen(process.env.PORT || 5000); //choose port
+console.log('Server listening on port 5000...')
 app.use(express.static(__dirname + '/public')); //directory to static files (*.css, *.js)
 app.get('/', function (req, res) {
     res.sendFile(__dirname + '/index.html');
 }); //redirect to index.html on main page
 
-function myEmit(message) {
-    for (let key in this.data) {
-    }
-}
 
-
+// -------------------- EVENTS -------------------------
 io.sockets.on('connection', function (socket) {
 
     socket.on('connection-request', function (json) {
         console.log('***********************************\n')
-        console.log('Socket ' + socket.id + ' connected!')
-        console.log("Socket connected.");
+        console.log('Socket <' + socket.id + '> connected!')
         let encryptedSymmetricKey = json['encryptedSymmetricKey'];
         console.log("Encrypted symmetric key: " + encryptedSymmetricKey);
         let decryptor = new JSEncrypt();
@@ -97,8 +88,7 @@ io.sockets.on('connection', function (socket) {
         let decryptedSymmetricKey = decryptor.decrypt(encryptedSymmetricKey);
         console.log('Decrypted symmetric key: ' + decryptedSymmetricKey);
 
-        console.log('This user: ' + socket.id)
-        dict.add(socket.id, decryptedSymmetricKey);
+        dict.add(socket.id, decryptedSymmetricKey); //add socket.id to sockets' list
         dict.viewAll()
 
         io.emit('connection-response', {message: 'User connected'})
@@ -108,15 +98,14 @@ io.sockets.on('connection', function (socket) {
         let mystring = json['message']
         let m = mystring.toString()
         console.log('Encrypted message: ' + mystring + '\nSocket.id: ' + socket.id)
-        console.log('Pass: ' + dict.get(socket.id))
+        console.log('Key: ' + dict.get(socket.id))
 
-
+        console.log('Before decryption: '+ m)
         let mes = decrypt(m, dict.get(socket.id))
-        console.log('the mes: ' + mes)
+        console.log('After decryption: ' + mes)
         json['message'] = mes
-        dict.myemit(json)
-
-
+        
+        dict.myemit(json) //function sending to others with theit keys
     })
 
     socket.on('disconnect', function () {
