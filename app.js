@@ -2,6 +2,7 @@ let express = require('express'),
     app = express(),
     server = require('http').createServer(app),
     io = require('socket.io').listen(server),
+    fs = require("fs"),
     CryptoJS = require('crypto-js');
 
 const JSEncrypt = require('node-jsencrypt');
@@ -46,8 +47,8 @@ let dict = new Dictionary();
 
 
 
-// -------------------- CHOOSING PRIVATE & PUBLIC KEY -------------------------
-let fs = require("fs");
+// -------------------- CHOOSING PRIVATE & PUBLIC KEY ------------------------- \\
+
 let privateKey = fs.readFileSync("./keys/private-key.pem", function (err, data) {
     if (err) throw err;
 }).toString();
@@ -65,7 +66,7 @@ function decrypt(ciphertextStr, key) {
 }
 
 
-
+// -------------------- QUICK SERVER SETUP ------------------------- \\
 
 server.listen(process.env.PORT || 5000); //choose port
 console.log('Server listening on port 5000...')
@@ -75,7 +76,7 @@ app.get('/', function (req, res) {
 }); //redirect to index.html on main page
 
 
-// -------------------- EVENTS -------------------------
+// -------------------- EVENTS ------------------------- \\
 io.sockets.on('connection', function (socket) {
 
     socket.on('connection-request', function (json) {

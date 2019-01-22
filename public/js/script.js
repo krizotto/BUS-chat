@@ -1,4 +1,4 @@
-//Locals
+// -------------------- LOCALS ------------------------- \\
 let this_usr;
 let socket = io.connect('http://' + document.domain + ':' + location.port);
 let key = CryptoJS.lib.WordArray.random(32).toString(); //get client random key
