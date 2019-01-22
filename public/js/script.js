@@ -1,7 +1,8 @@
 //Locals
 let this_usr;
+let enc_usr;
 let socket = io.connect('http://' + document.domain + ':' + location.port);
-let key = CryptoJS.enc.Utf8.parse('1234567890123456');
+let key = CryptoJS.lib.WordArray.random(32); //randomowe klucze
 console.log("Generated symmetric key:" + key.toString());
 
 function encrypt(msgString, key) {
@@ -31,6 +32,14 @@ function decrypt(ciphertextStr, key) {
 }
 
 socket.on('connect', function () {
+    // let cookie =  document.cookie
+    //     var output = {};
+    //         cookie.split(/\s*;\s*/).forEach(function(pair) {
+    //         pair = pair.split(/\s*=\s*/);
+    //         output[pair[0]] = pair.splice(1).join('=');
+    //     });
+    // console.log(output)
+        //dict.add(output['connect.sid'],decryptedSymmetricKey);
     let generated_key = key.toString();
     var encryptor = new JSEncrypt(); // https://github.com/travist/jsencrypt
     // tu taki hardkod troche brzydki, ale na razie nie mam pomyslu jak ladniej to przekazac zeby bylo w miare latwo. wydaje mi sie ze na projekt jest ok
@@ -66,7 +75,7 @@ socket.on('connect', function () {
                 user_name: user_name,
                 message: my_input
             })
-
+            console.log('Decrypted: '+decrypt(my_input,key))
             $('input.message').val('').focus()
             if (user_name !== undefined) document.getElementById("username").disabled = true;
 
@@ -88,9 +97,11 @@ socket.on('message-response', function (msg) {
     let message = decodeURIComponent(escape(msg.message));
 
     console.log("message before decryption: " + message);
-
-    let mymessage = decrypt(message,key);
-
+    let truth = encrypt(message, key)
+    let mess = message.toString();
+    mymessage = decrypt(mess,key)
+    console.log('MESEZ: '+mess+'TRU: '+truth)
+    
     //Adding message bubbles
     if (user == this_usr) { //my bubbles
         $('p.me-sign').remove() //remove prev signature
