@@ -2,34 +2,21 @@
 let this_usr;
 let enc_usr;
 let socket = io.connect('http://' + document.domain + ':' + location.port);
-let key = CryptoJS.lib.WordArray.random(32); //randomowe klucze
+let key = CryptoJS.lib.WordArray.random(32).toString(); //randomowe klucze
 console.log("Generated symmetric key:" + key.toString());
 
 function encrypt(msgString, key) {
-    // msgString is expected to be Utf8 encoded
-    let iv = CryptoJS.lib.WordArray.random(16);
-    let encrypted = CryptoJS.AES.encrypt(msgString, key, {
-        iv: iv
-    });
-    return iv.concat(encrypted.ciphertext).toString(CryptoJS.enc.Base64);
+
+    console.log("Encrypting: " + msgString)
+    console.log("With key: " + key)
+
+    return CryptoJS.AES.encrypt(msgString, key).toString();
 }
 
 function decrypt(ciphertextStr, key) {
-    let ciphertext = CryptoJS.enc.Base64.parse(ciphertextStr);
-
-    // split IV and ciphertext
-    let iv = ciphertext.clone();
-    iv.sigBytes = 16;
-    iv.clamp();
-    ciphertext.words.splice(0, 4); // delete 4 words = 16 bytes
-    ciphertext.sigBytes -= 16;
-
-    // decryption
-    let decrypted = CryptoJS.AES.decrypt({ciphertext: ciphertext}, key, {
-        iv: iv
-    });
-    return decrypted.toString(CryptoJS.enc.Utf8);
+    return CryptoJS.AES.decrypt(ciphertextStr, key).toString(CryptoJS.enc.Utf8);
 }
+
 
 socket.on('connect', function () {
     // let cookie =  document.cookie
@@ -39,7 +26,7 @@ socket.on('connect', function () {
     //         output[pair[0]] = pair.splice(1).join('=');
     //     });
     // console.log(output)
-        //dict.add(output['connect.sid'],decryptedSymmetricKey);
+    //dict.add(output['connect.sid'],decryptedSymmetricKey);
     let generated_key = key.toString();
     var encryptor = new JSEncrypt(); // https://github.com/travist/jsencrypt
     // tu taki hardkod troche brzydki, ale na razie nie mam pomyslu jak ladniej to przekazac zeby bylo w miare latwo. wydaje mi sie ze na projekt jest ok
@@ -67,7 +54,7 @@ socket.on('connect', function () {
         if (user_name !== '' && user_input != '') {
             this_usr = user_name
 
-            let my_input = encrypt(user_input,key).toString();
+            let my_input = encrypt(user_input, key).toString();
 
             console.log("message after decryption: " + user_input);
 
@@ -75,7 +62,7 @@ socket.on('connect', function () {
                 user_name: user_name,
                 message: my_input
             })
-            console.log('Decrypted: '+decrypt(my_input,key))
+            console.log('Decrypted: ' + decrypt(my_input, key))
             $('input.message').val('').focus()
             if (user_name !== undefined) document.getElementById("username").disabled = true;
 
@@ -99,9 +86,9 @@ socket.on('message-response', function (msg) {
     console.log("message before decryption: " + message);
     let truth = encrypt(message, key)
     let mess = message.toString();
-    mymessage = decrypt(mess,key)
-    console.log('MESEZ: '+mess+'TRU: '+truth)
-    
+    mymessage = decrypt(mess, key)
+    console.log('MESEZ: ' + mess + 'TRU: ' + truth)
+
     //Adding message bubbles
     if (user == this_usr) { //my bubbles
         $('p.me-sign').remove() //remove prev signature

@@ -4,38 +4,38 @@ let express = require('express'),
     io = require('socket.io').listen(server),
     CryptoJS = require('crypto-js');
 
-    //RedisStore = require('connect-redis')(session);
-let Dictionary = function(){
+//RedisStore = require('connect-redis')(session);
+let Dictionary = function () {
     this.data = {};
-    this.add = function(key, value){
+    this.add = function (key, value) {
         this.data[key] = value;
     };
-    this.remove = function(key) {
+    this.remove = function (key) {
         delete this.data[key];
     };
-    this.has = function(key){
+    this.has = function (key) {
         return key in this.data;
     };
-    this.get = function(key) {
+    this.get = function (key) {
         return this.has(key) ? this.data[key] : undefined;
     };
-    this.viewAll = function() {
+    this.viewAll = function () {
         console.log('\n-------------------')
         console.log('List of dict')
         for (var key in this.data) {
-          console.log(key + " -> " + this.data[key]);
+            console.log(key + " -> " + this.data[key]);
         }
         console.log('\n-------------------')
-      };
-    this.myemit = function(json){
-        for(let key in this.data){
+    };
+    this.myemit = function (json) {
+        for (let key in this.data) {
             let myMessage = 'hello'
-            console.log('My message: '+myMessage)
-            let encMess = encrypt(myMessage,this.get(key))
-            console.log('EncMes: '+encMess)
+            console.log('My message: ' + myMessage)
+            let encMess = encrypt(myMessage, this.get(key))
+            console.log('EncMes: ' + encMess)
             json['message'] = encMess
-            io.to(key).emit('message-response',json)
-        }            
+            io.to(key).emit('message-response', json)
+        }
     }
 }
 
@@ -61,29 +61,11 @@ const JSEncrypt = require('node-jsencrypt');
 const jsEncrypt = new JSEncrypt();
 
 function encrypt(msgString, key) {
-    // msgString is expected to be Utf8 encoded
-    let iv = CryptoJS.lib.WordArray.random(16);
-    let encrypted = CryptoJS.AES.encrypt(msgString, key, {
-        iv: iv
-    });
-    return iv.concat(encrypted.ciphertext).toString(CryptoJS.enc.Base64);
+    return CryptoJS.AES.encrypt(msgString, key).toString();
 }
 
 function decrypt(ciphertextStr, key) {
-    let ciphertext = CryptoJS.enc.Base64.parse(ciphertextStr);
-
-    // split IV and ciphertext
-    let iv = ciphertext.clone();
-    iv.sigBytes = 16;
-    iv.clamp();
-    ciphertext.words.splice(0, 4); // delete 4 words = 16 bytes
-    ciphertext.sigBytes -= 16;
-
-    // decryption
-    let decrypted = CryptoJS.AES.decrypt({ciphertext: ciphertext}, key, {
-        iv: iv
-    });
-    return decrypted.toString(CryptoJS.enc.Utf8);
+    return CryptoJS.AES.decrypt(ciphertextStr, key).toString(CryptoJS.enc.Utf8);
 }
 
 
@@ -96,16 +78,17 @@ app.get('/', function (req, res) {
     res.sendFile(__dirname + '/index.html');
 }); //redirect to index.html on main page
 
-function myEmit(message){
-    for(let key in this.data){}
+function myEmit(message) {
+    for (let key in this.data) {
+    }
 }
 
 
 io.sockets.on('connection', function (socket) {
-    
+
     socket.on('connection-request', function (json) {
         console.log('***********************************\n')
-        console.log('Socket '+socket.id +' connected!')
+        console.log('Socket ' + socket.id + ' connected!')
         console.log("Socket connected.");
         let encryptedSymmetricKey = json['encryptedSymmetricKey'];
         console.log("Encrypted symmetric key: " + encryptedSymmetricKey);
@@ -113,30 +96,30 @@ io.sockets.on('connection', function (socket) {
         decryptor.setPrivateKey(privateKey);
         let decryptedSymmetricKey = decryptor.decrypt(encryptedSymmetricKey);
         console.log('Decrypted symmetric key: ' + decryptedSymmetricKey);
-      
-        console.log('This user: '+socket.id)
-        dict.add(socket.id,decryptedSymmetricKey);
+
+        console.log('This user: ' + socket.id)
+        dict.add(socket.id, decryptedSymmetricKey);
         dict.viewAll()
-     
+
         io.emit('connection-response', {message: 'User connected'})
     })
 
     socket.on('message-request', function (json) {
         let mystring = json['message']
         let m = mystring.toString()
-        console.log('Encrypted message: ' + mystring+'\nSocket.id: '+socket.id)
-        console.log('Pass: '+dict.get(socket.id))
+        console.log('Encrypted message: ' + mystring + '\nSocket.id: ' + socket.id)
+        console.log('Pass: ' + dict.get(socket.id))
 
-        
-        let mes = decrypt(m,dict.get(socket.id))
-        console.log('the mes: '+mes)
+
+        let mes = decrypt(m, dict.get(socket.id))
+        console.log('the mes: ' + mes)
         json['message'] = mes
         dict.myemit(json)
-        
-        
+
+
     })
 
-    socket.on('disconnect', function(){
+    socket.on('disconnect', function () {
         dict.remove(socket.id)
         dict.viewAll()
     })
