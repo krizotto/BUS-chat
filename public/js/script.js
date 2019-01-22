@@ -46,6 +46,7 @@ socket.on('connect', function () {
             this_usr = user_name
             console.log('\nSENDING MESSAGE: ')
             let my_input = encrypt(user_input, key).toString();
+            
             console.log("Encrypted message: " + my_input);
 
             socket.emit('message-request', {

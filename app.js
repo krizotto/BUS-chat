@@ -23,7 +23,7 @@ let Dictionary = function () {
     };
     this.viewAll = function () {
         console.log('\n-------------------')
-        console.log('List of dict')
+        console.log('USER  --->  KEY')
         for (var key in this.data) {
             console.log(key + " -> " + this.data[key]);
         }
@@ -99,14 +99,13 @@ io.sockets.on('connection', function (socket) {
     socket.on('message-request', function (json) {
         let mystring = json['message']
         let m = mystring.toString()
+        console.log('----------  NEW MESSAGE    ------------')
         console.log('Encrypted message: ' + mystring + '\nSocket.id: ' + socket.id)
         console.log('Key: ' + dict.get(socket.id))
-
         console.log('Before decryption: '+ m)
         let mes = decrypt(m, dict.get(socket.id))
         console.log('After decryption: ' + mes)
         json['message'] = mes
-        
         dict.myemit(json) //function sending to others with theit keys
     })
 
