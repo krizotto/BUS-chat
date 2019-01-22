@@ -5,13 +5,13 @@ let key = CryptoJS.lib.WordArray.random(32).toString(); //get client random key
 console.log("Generated symmetric key:" + key.toString()); //just for tests
 
 function encrypt(msgString, key) {
-    console.log("Encrypting: " + msgString)
+    console.log("\nEncrypting: " + msgString)
     console.log("With key: " + key)
     return CryptoJS.AES.encrypt(msgString, key).toString();
 }
 
 function decrypt(ciphertextStr, key) {
-    console.log("Decrypting: " + ciphertextStr)
+    console.log("\nDecrypting: " + ciphertextStr)
     console.log("With key: " + key)
     return CryptoJS.AES.decrypt(ciphertextStr, key).toString(CryptoJS.enc.Utf8);
 }
@@ -44,16 +44,15 @@ socket.on('connect', function () {
 
         if (user_name !== '' && user_input != '') {
             this_usr = user_name
-
+            console.log('\nSENDING MESSAGE: ')
             let my_input = encrypt(user_input, key).toString();
-
-            console.log("Message after encryption: " + my_input);
+            console.log("Encrypted message: " + my_input);
 
             socket.emit('message-request', {
                 user_name: user_name,
                 message: my_input //the encrypted one is sent
             })
-            console.log('Message after decryption: ' + decrypt(my_input, key))
+            
             $('input.message').val('').focus()
             if (user_name !== undefined) document.getElementById("username").disabled = true;
 
@@ -70,13 +69,13 @@ socket.on('message-response', function (msg) {
 
     $('h3').remove()
 
-    let user = decodeURIComponent(escape(msg.user_name));
-    let message = decodeURIComponent(escape(msg.message));
-
-    console.log("Message from server before decryption: " + message);
-    let truth = encrypt(message, key)
-    let mess = message.toString();
+    let user = decodeURIComponent(escape(msg.user_name))
+    let message = decodeURIComponent(escape(msg.message))
+    console.log('\nRECEIVE MESSAGE:')
+    console.log("Message from server before decryption: " + message)
+    let mess = message.toString()
     mymessage = decrypt(mess, key)
+    console.log('Message from server after decryption: '+mymessage)
 
 
     //Adding message bubbles

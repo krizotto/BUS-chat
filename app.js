@@ -32,6 +32,7 @@ let Dictionary = function () {
     this.myemit = function (json) {
         let myMessage = json['message']
         for (let key in this.data) {
+            console.log('-------------------\nMessage to: '+key)
             console.log('My message: ' + myMessage)
             let encMess = encrypt(myMessage, this.get(key))
             console.log('EncMes: ' + encMess)
