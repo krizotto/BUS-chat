@@ -29,23 +29,18 @@ let Dictionary = function () {
         }
         console.log('\n-------------------')
     };
-    this.myemit = function (json) {
-        let myMessage = json['message']
+
+    this.encryptAndEmit = function (json) {
+        let myMessage = json['message'];
         for (let key in this.data) {
-            console.log('-------------------\nMessage to: '+key)
-            console.log('My message: ' + myMessage)
-            let encMess = encrypt(myMessage, this.get(key))
-            console.log('EncMes: ' + encMess)
-            json['message'] = encMess
-            io.to(key).emit('message-response', json)
+            let encryptedMessage = encrypt(myMessage, this.get(key));
+            json['message'] = encryptedMessage
+            io.to(key).emit('message-response', json);
         }
     }
-}
+};
 
-let dict = new Dictionary();
-
-
-
+let socketKeyDictionary = new Dictionary();
 
 
 // -------------------- CHOOSING PRIVATE & PUBLIC KEY ------------------------- \\
@@ -62,6 +57,7 @@ let publicKey = fs.readFileSync("./keys/public-key.pem", function (err, data) {
 function encrypt(msgString, key) {
     return CryptoJS.AES.encrypt(msgString, key).toString();
 }
+
 function decrypt(ciphertextStr, key) {
     return CryptoJS.AES.decrypt(ciphertextStr, key).toString(CryptoJS.enc.Utf8);
 }
@@ -81,36 +77,25 @@ app.get('/', function (req, res) {
 io.sockets.on('connection', function (socket) {
 
     socket.on('connection-request', function (json) {
-        console.log('***********************************\n')
-        console.log('Socket <' + socket.id + '> connected!')
         let encryptedSymmetricKey = json['encryptedSymmetricKey'];
-        console.log("Encrypted symmetric key: " + encryptedSymmetricKey);
         let decryptor = new JSEncrypt();
         decryptor.setPrivateKey(privateKey);
         let decryptedSymmetricKey = decryptor.decrypt(encryptedSymmetricKey);
-        console.log('Decrypted symmetric key: ' + decryptedSymmetricKey);
 
-        dict.add(socket.id, decryptedSymmetricKey); //add socket.id to sockets' list
-        dict.viewAll()
+        socketKeyDictionary.add(socket.id, decryptedSymmetricKey); //add socket.id to sockets' list
 
         io.emit('connection-response', {message: 'User connected'})
-    })
-
+    });
     socket.on('message-request', function (json) {
-        let mystring = json['message']
-        let m = mystring.toString()
-        console.log('----------  NEW MESSAGE    ------------')
-        console.log('Encrypted message: ' + mystring + '\nSocket.id: ' + socket.id)
-        console.log('Key: ' + dict.get(socket.id))
-        console.log('Before decryption: '+ m)
-        let mes = decrypt(m, dict.get(socket.id))
-        console.log('After decryption: ' + mes)
-        json['message'] = mes
-        dict.myemit(json) //function sending to others with theit keys
-    })
+        let message = json['message'];
+        let messageText = message.toString();
+        let decryptedMessageText = decrypt(messageText, socketKeyDictionary.get(socket.id));
+        json['message'] = decryptedMessageText;
+        socketKeyDictionary.encryptAndEmit(json)
+    });
 
     socket.on('disconnect', function () {
-        dict.remove(socket.id)
-        dict.viewAll()
+        socketKeyDictionary.remove(socket.id)
+        socketKeyDictionary.viewAll()
     })
 });

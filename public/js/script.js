@@ -45,14 +45,12 @@ socket.on('connect', function () {
         if (user_name !== '' && user_input != '') {
             this_usr = user_name
             console.log('\nSENDING MESSAGE: ')
-            let my_input = encrypt(user_input, key).toString();
-            
-            console.log("Encrypted message: " + my_input);
 
+            let encrypted_input = encrypt(user_input, key).toString();
             socket.emit('message-request', {
                 user_name: user_name,
-                message: my_input //the encrypted one is sent
-            })
+                message: encrypted_input
+            });
             
             $('input.message').val('').focus()
             if (user_name !== undefined) document.getElementById("username").disabled = true;
